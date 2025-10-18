@@ -26,7 +26,7 @@ spec:
                 port: 443
                 nodePort: 30003
 
-        externalURL: http://harbor.local
+        externalURL: http://10.8.0.13:30002
 
         harborAdminPassword: "Harbor12345"
 
