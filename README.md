@@ -6,17 +6,36 @@ Este repositório contém a configuração GitOps para deploy de RabbitMQ e Knat
 
 ```
 .
-├── helmfile.yaml                   # Configuração principal do Helmfile
+├── helmfile.yaml                          # Configuração principal do Helmfile
 ├── values/
-│   └── rabbitmq-values.yaml       # Valores customizados para o RabbitMQ
+│   └── rabbitmq-values.yaml              # Valores customizados para o RabbitMQ
 ├── argocd/
-│   ├── application.yaml           # ArgoCD Application para RabbitMQ
-│   ├── knative-serving.yaml       # ArgoCD Application para Knative Serving
-│   ├── knative-eventing.yaml      # ArgoCD Application para Knative Eventing
-│   ├── kourier.yaml               # ArgoCD Application para Kourier (Ingress)
-│   └── applicationset.yaml        # ApplicationSet (alternativa)
+│   ├── root-app.yaml                     # App of Apps principal (deploy tudo)
+│   └── apps/                             # Applications individuais
+│       ├── application.yaml              # RabbitMQ
+│       ├── knative-serving.yaml          # Knative Serving (CRDs + Core)
+│       ├── knative-eventing.yaml         # Knative Eventing (CRDs + Core)
+│       ├── kourier.yaml                  # Kourier (Ingress)
+│       ├── knative-config.yaml           # Configurações Knative
+│       └── applicationset.yaml           # ApplicationSet (alternativa)
+├── knative/                              # Manifestos Knative com Kustomize
+│   ├── serving-crds/
+│   │   └── kustomization.yaml
+│   ├── serving-core/
+│   │   └── kustomization.yaml
+│   ├── eventing-crds/
+│   │   └── kustomization.yaml
+│   ├── eventing-core/
+│   │   └── kustomization.yaml
+│   ├── kourier/
+│   │   └── kustomization.yaml
+│   └── config/
+│       ├── kustomization.yaml
+│       ├── config-network.yaml
+│       └── config-domain.yaml
 ├── manifests/
-│   └── knative-config.yaml        # Configurações do Knative
+│   ├── knative-config.yaml               # Configurações legadas
+│   └── install-knative.sh                # Script instalação manual
 └── README.md
 ```
 
@@ -141,52 +160,57 @@ Este repositório também inclui configuração para deploy do Knative Serving e
 - **Knative Eventing**: Sistema de gerenciamento e entrega de eventos
 - **Kourier**: Ingress leve para Knative Serving
 
-### Deploy do Knative
+### Deploy do Knative via ArgoCD
 
-#### Opção 1: Script de Instalação (Recomendado)
+Este repositório usa o padrão "App of Apps" do ArgoCD para gerenciar todo o cluster, incluindo Knative.
 
-```bash
-# Executar script de instalação
-./manifests/install-knative.sh
-```
+#### Deploy Completo (Recomendado)
 
-#### Opção 2: Manual via kubectl
+Para deployar todo o cluster (RabbitMQ + Knative) gerenciado pelo ArgoCD:
 
 ```bash
-KNATIVE_VERSION="1.15.0"
-
-# Instalar Knative Serving
-kubectl apply -f https://github.com/knative/serving/releases/download/knative-v${KNATIVE_VERSION}/serving-crds.yaml
-kubectl apply -f https://github.com/knative/serving/releases/download/knative-v${KNATIVE_VERSION}/serving-core.yaml
-
-# Instalar Kourier
-kubectl apply -f https://github.com/knative/net-kourier/releases/download/knative-v${KNATIVE_VERSION}/kourier.yaml
-
-# Configurar Kourier como ingress
-kubectl patch configmap/config-network \
-  --namespace knative-serving \
-  --type merge \
-  --patch '{"data":{"ingress-class":"kourier.ingress.networking.knative.dev"}}'
-
-# Instalar Knative Eventing (opcional)
-kubectl apply -f https://github.com/knative/eventing/releases/download/knative-v${KNATIVE_VERSION}/eventing-crds.yaml
-kubectl apply -f https://github.com/knative/eventing/releases/download/knative-v${KNATIVE_VERSION}/eventing-core.yaml
+# Aplicar a Application principal que gerencia todas as outras
+kubectl apply -f argocd/root-app.yaml
 ```
 
-#### Opção 3: Deploy via ArgoCD (Experimental)
+Isso criará automaticamente:
+- RabbitMQ
+- Knative Serving (CRDs + Core)
+- Knative Eventing (CRDs + Core)
+- Kourier (Ingress)
+- Configurações do Knative
 
-**Nota**: As Applications do ArgoCD para Knative são experimentais devido à complexidade dos CRDs.
+#### Deploy Individual
+
+Para deployar apenas componentes específicos:
 
 ```bash
-# Deploy Knative Serving
-kubectl apply -f argocd/knative-serving.yaml
+# RabbitMQ
+kubectl apply -f argocd/apps/application.yaml
 
-# Deploy Kourier (Ingress)
-kubectl apply -f argocd/kourier.yaml
+# Knative Serving
+kubectl apply -f argocd/apps/knative-serving.yaml
 
-# Deploy Knative Eventing (opcional)
-kubectl apply -f argocd/knative-eventing.yaml
+# Kourier
+kubectl apply -f argocd/apps/kourier.yaml
+
+# Knative Eventing
+kubectl apply -f argocd/apps/knative-eventing.yaml
+
+# Configurações do Knative
+kubectl apply -f argocd/apps/knative-config.yaml
 ```
+
+#### Como Funciona
+
+O repositório usa **Kustomize** com **sync waves** do ArgoCD para garantir a ordem correta de instalação:
+
+1. **Wave 1**: CRDs do Knative Serving e Eventing
+2. **Wave 2**: Core do Knative Serving e Eventing
+3. **Wave 3**: Kourier (Ingress)
+4. **Wave 4**: Configurações (ConfigMaps)
+
+Os manifestos são baixados automaticamente dos releases oficiais do Knative via Kustomize.
 
 ### Verificar Status do Knative
 

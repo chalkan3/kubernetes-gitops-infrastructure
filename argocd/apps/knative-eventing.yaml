@@ -1,0 +1,70 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: knative-eventing-crds
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://git.keite-guica.chalkan3.com.br/chalkan3/helmfile-rabbitmq.git
+    targetRevision: HEAD
+    path: knative/eventing-crds
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: knative-eventing
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: knative-eventing-core
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://git.keite-guica.chalkan3.com.br/chalkan3/helmfile-rabbitmq.git
+    targetRevision: HEAD
+    path: knative/eventing-core
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: knative-eventing
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+  ignoreDifferences:
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
+      jsonPointers:
+        - /webhooks/0/clientConfig/caBundle
+    - group: admissionregistration.k8s.io
+      kind: MutatingWebhookConfiguration
+      jsonPointers:
+        - /webhooks/0/clientConfig/caBundle
