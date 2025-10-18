@@ -17,6 +17,10 @@ spec:
           password: rabbitmq-password
           erlangCookie: secreterlangcookie
         replicaCount: 1
+        image:
+          registry: docker.io
+          repository: rabbitmq
+          tag: 3.13-management
         persistence:
           enabled: false
         service:
