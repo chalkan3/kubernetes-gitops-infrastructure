@@ -6,3 +6,12 @@ resources:
 
 commonAnnotations:
   argocd.argoproj.io/sync-wave: "3"
+
+patches:
+  - target:
+      kind: Service
+      name: kourier
+    patch: |-
+      - op: replace
+        path: /spec/type
+        value: NodePort
