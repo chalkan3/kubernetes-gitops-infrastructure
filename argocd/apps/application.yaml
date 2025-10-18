@@ -17,11 +17,10 @@ spec:
           password: rabbitmq-password
           erlangCookie: secreterlangcookie
         replicaCount: 1
-        # Using default image from chart - will use whatever is configured in Bitnami chart
-        # If cluster has connectivity issues, this might still fail
-        # image:
-        #   registry: docker.io
-        #   repository: bitnami/rabbitmq
+        image:
+          registry: docker.io
+          repository: bitnami/rabbitmq
+          tag: 3.13.7-debian-12-r4
         persistence:
           enabled: false
         service:
