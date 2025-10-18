@@ -1,0 +1,40 @@
+replicaCount: 1
+
+image:
+  repository: alpine
+  tag: "3.18"
+  pullPolicy: IfNotPresent
+
+service:
+  minScale: 1
+
+config:
+  # Lista de IPs dos nodes do cluster
+  nodeIps: "10.8.0.10,10.8.0.11,10.8.0.12,10.8.0.13,10.8.0.14,10.8.0.15"
+  # Domínio base para certificados wildcard
+  baseDomain: "kube.chalkan3.com.br"
+
+# SSH key para acessar os nodes
+sshKey: ""
+
+# mkcert CA certificate e key
+mkcertCA:
+  cert: ""
+  key: ""
+
+nodeSelector:
+  workload: tools
+
+tolerations:
+  - key: "workload"
+    operator: "Equal"
+    value: "tools"
+    effect: "NoSchedule"
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi

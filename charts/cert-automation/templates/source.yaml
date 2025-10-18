@@ -1,0 +1,16 @@
+apiVersion: sources.knative.dev/v1
+kind: ApiServerSource
+metadata:
+  name: ingress-source
+  namespace: cert-automation
+spec:
+  serviceAccountName: ingress-watcher
+  mode: Resource
+  resources:
+  - apiVersion: networking.k8s.io/v1
+    kind: Ingress
+  sink:
+    ref:
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      name: cert-manager

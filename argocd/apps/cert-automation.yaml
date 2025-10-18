@@ -1,0 +1,54 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-automation
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://git.keite-guica.chalkan3.com.br/chalkan3/helmfile-rabbitmq.git
+    targetRevision: main
+    path: charts/cert-automation
+    helm:
+      valuesObject:
+        config:
+          nodeIps: "10.8.0.10,10.8.0.11,10.8.0.12,10.8.0.13,10.8.0.14,10.8.0.15"
+          baseDomain: "kube.chalkan3.com.br"
+
+        # SSH key será injetada via secret
+        sshKey: |
+          # Placeholder - será preenchido manualmente no secret
+
+        mkcertCA:
+          cert: |
+            # Placeholder - será preenchido manualmente no secret
+          key: |
+            # Placeholder - será preenchido manualmente no secret
+
+        nodeSelector:
+          workload: tools
+
+        tolerations:
+          - key: "workload"
+            operator: "Equal"
+            value: "tools"
+            effect: "NoSchedule"
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cert-automation
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

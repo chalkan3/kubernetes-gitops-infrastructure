@@ -1,0 +1,8 @@
+apiVersion: v2
+name: cert-automation
+description: Automated certificate management for Kubernetes Ingress using mkcert
+type: application
+version: 0.1.0
+appVersion: "1.0"
+maintainers:
+  - name: chalkan3
