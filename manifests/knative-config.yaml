@@ -1,0 +1,30 @@
+---
+# ConfigMap para configurar Kourier como ingress do Knative Serving
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-network
+  namespace: knative-serving
+data:
+  ingress-class: "kourier.ingress.networking.knative.dev"
+---
+# ConfigMap para configurar domínio padrão
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-domain
+  namespace: knative-serving
+data:
+  # Altere para seu domínio customizado se necessário
+  svc.cluster.local: ""
+---
+# ConfigMap para desabilitar auto-TLS (opcional)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-certmanager
+  namespace: knative-serving
+data:
+  issuerRef: |
+    kind: ClusterIssuer
+    name: letsencrypt-http01-issuer

@@ -1,16 +1,22 @@
-# RabbitMQ GitOps com Helmfile e ArgoCD
+# GitOps com Helmfile e ArgoCD
 
-Este repositório contém a configuração GitOps para deploy do RabbitMQ usando Helmfile e ArgoCD.
+Este repositório contém a configuração GitOps para deploy de RabbitMQ e Knative usando Helmfile e ArgoCD.
 
 ## Estrutura do Repositório
 
 ```
 .
-├── helmfile.yaml                 # Configuração principal do Helmfile
+├── helmfile.yaml                   # Configuração principal do Helmfile
 ├── values/
-│   └── rabbitmq-values.yaml     # Valores customizados para o RabbitMQ
+│   └── rabbitmq-values.yaml       # Valores customizados para o RabbitMQ
 ├── argocd/
-│   └── application.yaml         # Manifesto do ArgoCD Application
+│   ├── application.yaml           # ArgoCD Application para RabbitMQ
+│   ├── knative-serving.yaml       # ArgoCD Application para Knative Serving
+│   ├── knative-eventing.yaml      # ArgoCD Application para Knative Eventing
+│   ├── kourier.yaml               # ArgoCD Application para Kourier (Ingress)
+│   └── applicationset.yaml        # ApplicationSet (alternativa)
+├── manifests/
+│   └── knative-config.yaml        # Configurações do Knative
 └── README.md
 ```
 
@@ -122,3 +128,97 @@ metrics:
   serviceMonitor:
     enabled: true
 ```
+
+---
+
+## Knative
+
+Este repositório também inclui configuração para deploy do Knative Serving e Eventing.
+
+### Componentes do Knative
+
+- **Knative Serving**: Plataforma serverless para deploy e gerenciamento de cargas de trabalho
+- **Knative Eventing**: Sistema de gerenciamento e entrega de eventos
+- **Kourier**: Ingress leve para Knative Serving
+
+### Deploy do Knative via ArgoCD
+
+```bash
+# Deploy Knative Serving
+kubectl apply -f argocd/knative-serving.yaml
+
+# Deploy Kourier (Ingress)
+kubectl apply -f argocd/kourier.yaml
+
+# Deploy Knative Eventing (opcional)
+kubectl apply -f argocd/knative-eventing.yaml
+
+# Aplicar configurações
+kubectl apply -f manifests/knative-config.yaml
+```
+
+### Verificar Status do Knative
+
+```bash
+# Verificar Knative Serving
+kubectl get pods -n knative-serving
+
+# Verificar Kourier
+kubectl get pods -n kourier-system
+
+# Verificar Knative Eventing
+kubectl get pods -n knative-eventing
+```
+
+### Exemplo de Knative Service
+
+```yaml
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: hello
+  namespace: default
+spec:
+  template:
+    spec:
+      containers:
+        - image: gcr.io/knative-samples/helloworld-go
+          ports:
+            - containerPort: 8080
+          env:
+            - name: TARGET
+              value: "World"
+```
+
+Aplicar e testar:
+
+```bash
+kubectl apply -f hello-service.yaml
+
+# Obter URL do serviço
+kubectl get ksvc hello
+
+# Testar (se tiver DNS configurado)
+curl http://hello.default.svc.cluster.local
+```
+
+### Configurar Domínio Customizado
+
+Edite o ConfigMap `config-domain` em `manifests/knative-config.yaml`:
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-domain
+  namespace: knative-serving
+data:
+  example.com: ""
+```
+
+### Notas Importantes
+
+- Knative requer um cluster Kubernetes 1.28+
+- Kourier é usado como ingress leve (alternativa ao Istio)
+- As Applications do ArgoCD apontam para os repositórios oficiais do Knative
+- Versão do Knative: v1.15.0

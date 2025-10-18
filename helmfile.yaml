@@ -3,6 +3,7 @@ repositories:
     url: https://charts.bitnami.com/bitnami
 
 releases:
+  # RabbitMQ
   - name: rabbitmq
     namespace: rabbitmq
     createNamespace: true
@@ -10,3 +11,7 @@ releases:
     version: 14.6.5
     values:
       - values/rabbitmq-values.yaml
+
+  # Knative - using manifests approach
+  # Note: Knative doesn't provide official Helm charts
+  # For GitOps, we'll create ArgoCD Applications that reference the official manifests
