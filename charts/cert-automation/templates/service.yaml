@@ -2,107 +2,45 @@ apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
   name: cert-manager
-  namespace: cert-automation
+  namespace: {{ .Release.Namespace }}
 spec:
   template:
     metadata:
       annotations:
         autoscaling.knative.dev/min-scale: "1"
     spec:
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
       containers:
       - name: cert-manager
-        image: alpine:3.18
-        command:
-        - /bin/sh
-        - -c
-        - |
-          #!/bin/sh
-          set -e
-
-          # Instalar dependências
-          apk add --no-cache openssh-client curl jq ca-certificates
-
-          # Configurar SSH
-          mkdir -p /root/.ssh
-          chmod 700 /root/.ssh
-          cp /secrets/ssh/id_rsa /root/.ssh/
-          chmod 600 /root/.ssh/id_rsa
-          ssh-keyscan -H $(cat /config/node-ips | tr ',' ' ') >> /root/.ssh/known_hosts 2>/dev/null || true
-
-          # Função para processar evento de Ingress
-          process_ingress() {
-            echo "Received CloudEvent:"
-            cat /dev/stdin
-
-            # Extrair hostname do Ingress
-            HOSTNAME=$(echo "$1" | jq -r '.data.object.spec.rules[0].host // empty')
-            NAMESPACE=$(echo "$1" | jq -r '.data.object.metadata.namespace // "default"')
-
-            if [ -z "$HOSTNAME" ]; then
-              echo "No hostname found in Ingress"
-              return
-            fi
-
-            echo "Processing Ingress for hostname: $HOSTNAME in namespace: $NAMESPACE"
-
-            # Verificar se já existe um certificado wildcard
-            BASE_DOMAIN=$(cat /config/base-domain)
-            if echo "$HOSTNAME" | grep -q "$BASE_DOMAIN"; then
-              echo "Hostname $HOSTNAME matches base domain $BASE_DOMAIN"
-              echo "Using existing wildcard certificate"
-
-              # Distribuir CA para todos os nodes
-              IFS=',' read -ra NODES <<< "$(cat /config/node-ips)"
-              for node in "${NODES[@]}"; do
-                echo "Distributing CA to node $node..."
-                scp -o StrictHostKeyChecking=no -i /root/.ssh/id_rsa \
-                  /certs/rootCA.pem root@$node:/tmp/mkcert-ca.crt
-                ssh -o StrictHostKeyChecking=no -i /root/.ssh/id_rsa \
-                  root@$node "cp /tmp/mkcert-ca.crt /usr/local/share/ca-certificates/ && update-ca-certificates && systemctl restart containerd"
-              done
-
-              echo "CA distributed successfully"
-            fi
-
-            echo "Processing complete"
-          }
-
-          # Iniciar servidor HTTP para receber eventos
-          echo "Starting cert-manager service..."
-          while true; do
-            nc -l -p 8080 -e /bin/sh -c '
-              read method path version
-              while read header; do
-                [ "$header" = "$(printf "\r")" ] && break
-              done
-
-              # Ler corpo da requisição
-              body=""
-              while IFS= read -r line; do
-                body="${body}${line}"
-              done
-
-              # Processar evento
-              echo "$body" | process_ingress
-
-              # Responder
-              echo "HTTP/1.1 200 OK"
-              echo "Content-Type: application/json"
-              echo ""
-              echo "{\"status\":\"ok\"}"
-            '
-          done
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: NODE_IPS
+          valueFrom:
+            configMapKeyRef:
+              name: mkcert-config
+              key: node-ips
+        - name: BASE_DOMAIN
+          valueFrom:
+            configMapKeyRef:
+              name: mkcert-config
+              key: base-domain
+        ports:
+        - containerPort: 8080
+          protocol: TCP
         volumeMounts:
-        - name: config
-          mountPath: /config
         - name: ssh-key
           mountPath: /secrets/ssh
+          readOnly: true
         - name: mkcert-ca
           mountPath: /certs
+          readOnly: true
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
       volumes:
-      - name: config
-        configMap:
-          name: mkcert-config
       - name: ssh-key
         secret:
           secretName: ssh-key

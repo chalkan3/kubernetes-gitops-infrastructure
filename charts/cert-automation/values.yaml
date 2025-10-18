@@ -1,9 +1,9 @@
 replicaCount: 1
 
 image:
-  repository: alpine
-  tag: "3.18"
-  pullPolicy: IfNotPresent
+  repository: harbor.kube.chalkan3.com.br/library/cert-automation
+  tag: "latest"
+  pullPolicy: Always
 
 service:
   minScale: 1
