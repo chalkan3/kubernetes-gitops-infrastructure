@@ -1,0 +1,133 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: harbor
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://helm.goharbor.io
+    targetRevision: 1.15.1
+    chart: harbor
+    helm:
+      valuesObject:
+        expose:
+          type: nodePort
+          tls:
+            enabled: false
+          nodePort:
+            name: harbor
+            ports:
+              http:
+                port: 80
+                nodePort: 30002
+              https:
+                port: 443
+                nodePort: 30003
+
+        externalURL: http://harbor.local
+
+        harborAdminPassword: "Harbor12345"
+
+        persistence:
+          enabled: false
+
+        # NodeSelector para todos os componentes
+        portal:
+          nodeSelector:
+            workload: tools
+          tolerations:
+            - key: "workload"
+              operator: "Equal"
+              value: "tools"
+              effect: "NoSchedule"
+
+        core:
+          nodeSelector:
+            workload: tools
+          tolerations:
+            - key: "workload"
+              operator: "Equal"
+              value: "tools"
+              effect: "NoSchedule"
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 250m
+            limits:
+              memory: 512Mi
+              cpu: 500m
+
+        jobservice:
+          nodeSelector:
+            workload: tools
+          tolerations:
+            - key: "workload"
+              operator: "Equal"
+              value: "tools"
+              effect: "NoSchedule"
+
+        registry:
+          nodeSelector:
+            workload: tools
+          tolerations:
+            - key: "workload"
+              operator: "Equal"
+              value: "tools"
+              effect: "NoSchedule"
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 250m
+            limits:
+              memory: 512Mi
+              cpu: 500m
+
+        trivy:
+          enabled: true
+          nodeSelector:
+            workload: tools
+          tolerations:
+            - key: "workload"
+              operator: "Equal"
+              value: "tools"
+              effect: "NoSchedule"
+
+        database:
+          internal:
+            nodeSelector:
+              workload: tools
+            tolerations:
+              - key: "workload"
+                operator: "Equal"
+                value: "tools"
+                effect: "NoSchedule"
+
+        redis:
+          internal:
+            nodeSelector:
+              workload: tools
+            tolerations:
+              - key: "workload"
+                operator: "Equal"
+                value: "tools"
+                effect: "NoSchedule"
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: harbor
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

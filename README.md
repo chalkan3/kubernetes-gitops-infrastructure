@@ -1,6 +1,6 @@
 # GitOps com Helmfile e ArgoCD
 
-Este repositório contém a configuração GitOps para deploy de RabbitMQ e Knative usando Helmfile e ArgoCD.
+Este repositório contém a configuração GitOps para deploy de RabbitMQ, Harbor e Knative usando Helmfile e ArgoCD.
 
 ## Estrutura do Repositório
 
@@ -127,6 +127,120 @@ kubectl port-forward -n rabbitmq svc/rabbitmq 5672:5672
 
 Para customizar a instalação, edite o arquivo `values/rabbitmq-values.yaml` e faça commit.
 O ArgoCD detectará as mudanças e aplicará automaticamente (se auto-sync estiver habilitado).
+
+---
+
+## Harbor
+
+Harbor é um registry de container images enterprise-grade com segurança, identidade e gerenciamento.
+
+### Configuração do Harbor
+
+O Harbor está configurado com:
+- **NodePort**: Acessível via porta 30002 (HTTP) e 30003 (HTTPS)
+- **Credenciais iniciais**:
+  - Usuário: `admin`
+  - Senha: `Harbor12345` ⚠️ (alterar em produção)
+- **Persistência**: Desabilitada (sem StorageClass)
+- **NodeSelector**: `workload=tools`
+- **Componentes**: Portal, Core, Registry, JobService, Trivy (scanner de vulnerabilidades)
+
+### Acessar Harbor
+
+#### Via NodePort
+
+Descubra o IP de um dos workers:
+
+```bash
+kubectl get nodes -o wide
+```
+
+Acesse: `http://<NODE-IP>:30002`
+
+#### Via Port-forward
+
+```bash
+kubectl port-forward -n harbor svc/harbor 8080:80
+```
+
+Acesse: http://localhost:8080
+- Usuário: `admin`
+- Senha: `Harbor12345`
+
+### Usar Harbor como Registry
+
+#### Configurar Docker/Podman
+
+```bash
+# Login no Harbor
+docker login <NODE-IP>:30002
+# Usuário: admin
+# Senha: Harbor12345
+
+# Tag de imagem
+docker tag myimage:latest <NODE-IP>:30002/library/myimage:latest
+
+# Push para Harbor
+docker push <NODE-IP>:30002/library/myimage:latest
+```
+
+#### Configurar Kubernetes para usar Harbor
+
+```bash
+# Criar secret para pull de imagens
+kubectl create secret docker-registry harbor-registry \
+  --docker-server=<NODE-IP>:30002 \
+  --docker-username=admin \
+  --docker-password=Harbor12345 \
+  --namespace=<your-namespace>
+
+# Usar no Pod
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-pod
+spec:
+  imagePullSecrets:
+    - name: harbor-registry
+  containers:
+    - name: app
+      image: <NODE-IP>:30002/library/myimage:latest
+```
+
+### Funcionalidades do Harbor
+
+- **Replicação**: Replicar imagens entre registries
+- **Vulnerability Scanning**: Scanner Trivy integrado
+- **Content Trust**: Assinatura de imagens
+- **RBAC**: Controle de acesso baseado em roles
+- **Webhook**: Notificações de eventos
+- **Garbage Collection**: Limpeza automática de layers não utilizados
+
+### Resolver Problema de Imagens do Docker Hub
+
+Como o cluster tem problema para pull de imagens do Docker Hub, você pode:
+
+1. **Fazer mirror via Harbor**:
+   - Pull imagens localmente
+   - Push para Harbor
+   - Configurar cluster para usar Harbor
+
+2. **Exemplo**:
+```bash
+# Pull imagem do Docker Hub localmente
+docker pull bitnami/rabbitmq:3.13.7-debian-12-r4
+
+# Tag para Harbor
+docker tag bitnami/rabbitmq:3.13.7-debian-12-r4 <NODE-IP>:30002/library/rabbitmq:3.13.7-debian-12-r4
+
+# Push para Harbor
+docker push <NODE-IP>:30002/library/rabbitmq:3.13.7-debian-12-r4
+
+# Atualizar deployment para usar Harbor
+# image: <NODE-IP>:30002/library/rabbitmq:3.13.7-debian-12-r4
+```
+
+---
 
 ## Segurança
 

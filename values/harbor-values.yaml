@@ -1,0 +1,140 @@
+expose:
+  type: nodePort
+  tls:
+    enabled: false
+  nodePort:
+    name: harbor
+    ports:
+      http:
+        port: 80
+        nodePort: 30002
+      https:
+        port: 443
+        nodePort: 30003
+
+externalURL: http://harbor.local
+
+# Credenciais iniciais
+# IMPORTANTE: Alterar em produção
+harborAdminPassword: "Harbor12345"
+
+# Persistência
+persistence:
+  enabled: false
+  # Se tiver StorageClass, habilite:
+  # enabled: true
+  # persistentVolumeClaim:
+  #   registry:
+  #     storageClass: ""
+  #     size: 50Gi
+  #   chartmuseum:
+  #     storageClass: ""
+  #     size: 5Gi
+  #   jobservice:
+  #     storageClass: ""
+  #     size: 1Gi
+  #   database:
+  #     storageClass: ""
+  #     size: 5Gi
+  #   redis:
+  #     storageClass: ""
+  #     size: 1Gi
+  #   trivy:
+  #     storageClass: ""
+  #     size: 5Gi
+
+# NodeSelector para deployar em nós tools
+nodeSelector:
+  workload: tools
+
+tolerations:
+  - key: "workload"
+    operator: "Equal"
+    value: "tools"
+    effect: "NoSchedule"
+
+# Componentes
+portal:
+  nodeSelector:
+    workload: tools
+  tolerations:
+    - key: "workload"
+      operator: "Equal"
+      value: "tools"
+      effect: "NoSchedule"
+
+core:
+  nodeSelector:
+    workload: tools
+  tolerations:
+    - key: "workload"
+      operator: "Equal"
+      value: "tools"
+      effect: "NoSchedule"
+
+jobservice:
+  nodeSelector:
+    workload: tools
+  tolerations:
+    - key: "workload"
+      operator: "Equal"
+      value: "tools"
+      effect: "NoSchedule"
+
+registry:
+  nodeSelector:
+    workload: tools
+  tolerations:
+    - key: "workload"
+      operator: "Equal"
+      value: "tools"
+      effect: "NoSchedule"
+
+trivy:
+  enabled: true
+  nodeSelector:
+    workload: tools
+  tolerations:
+    - key: "workload"
+      operator: "Equal"
+      value: "tools"
+      effect: "NoSchedule"
+
+database:
+  internal:
+    nodeSelector:
+      workload: tools
+    tolerations:
+      - key: "workload"
+        operator: "Equal"
+        value: "tools"
+        effect: "NoSchedule"
+
+redis:
+  internal:
+    nodeSelector:
+      workload: tools
+    tolerations:
+      - key: "workload"
+        operator: "Equal"
+        value: "tools"
+        effect: "NoSchedule"
+
+# Recursos
+core:
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 250m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+
+registry:
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 250m
+    limits:
+      memory: 512Mi
+      cpu: 500m

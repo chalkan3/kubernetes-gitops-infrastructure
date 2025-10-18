@@ -1,6 +1,8 @@
 repositories:
   - name: bitnami
     url: https://charts.bitnami.com/bitnami
+  - name: harbor
+    url: https://helm.goharbor.io
 
 releases:
   # RabbitMQ
@@ -11,6 +13,15 @@ releases:
     version: 14.6.5
     values:
       - values/rabbitmq-values.yaml
+
+  # Harbor
+  - name: harbor
+    namespace: harbor
+    createNamespace: true
+    chart: harbor/harbor
+    version: 1.15.1
+    values:
+      - values/harbor-values.yaml
 
   # Knative - using manifests approach
   # Note: Knative doesn't provide official Helm charts
