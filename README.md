@@ -141,7 +141,41 @@ Este repositório também inclui configuração para deploy do Knative Serving e
 - **Knative Eventing**: Sistema de gerenciamento e entrega de eventos
 - **Kourier**: Ingress leve para Knative Serving
 
-### Deploy do Knative via ArgoCD
+### Deploy do Knative
+
+#### Opção 1: Script de Instalação (Recomendado)
+
+```bash
+# Executar script de instalação
+./manifests/install-knative.sh
+```
+
+#### Opção 2: Manual via kubectl
+
+```bash
+KNATIVE_VERSION="1.15.0"
+
+# Instalar Knative Serving
+kubectl apply -f https://github.com/knative/serving/releases/download/knative-v${KNATIVE_VERSION}/serving-crds.yaml
+kubectl apply -f https://github.com/knative/serving/releases/download/knative-v${KNATIVE_VERSION}/serving-core.yaml
+
+# Instalar Kourier
+kubectl apply -f https://github.com/knative/net-kourier/releases/download/knative-v${KNATIVE_VERSION}/kourier.yaml
+
+# Configurar Kourier como ingress
+kubectl patch configmap/config-network \
+  --namespace knative-serving \
+  --type merge \
+  --patch '{"data":{"ingress-class":"kourier.ingress.networking.knative.dev"}}'
+
+# Instalar Knative Eventing (opcional)
+kubectl apply -f https://github.com/knative/eventing/releases/download/knative-v${KNATIVE_VERSION}/eventing-crds.yaml
+kubectl apply -f https://github.com/knative/eventing/releases/download/knative-v${KNATIVE_VERSION}/eventing-core.yaml
+```
+
+#### Opção 3: Deploy via ArgoCD (Experimental)
+
+**Nota**: As Applications do ArgoCD para Knative são experimentais devido à complexidade dos CRDs.
 
 ```bash
 # Deploy Knative Serving
@@ -152,9 +186,6 @@ kubectl apply -f argocd/kourier.yaml
 
 # Deploy Knative Eventing (opcional)
 kubectl apply -f argocd/knative-eventing.yaml
-
-# Aplicar configurações
-kubectl apply -f manifests/knative-config.yaml
 ```
 
 ### Verificar Status do Knative
