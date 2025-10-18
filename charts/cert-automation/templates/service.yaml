@@ -9,10 +9,6 @@ spec:
       annotations:
         autoscaling.knative.dev/min-scale: "1"
     spec:
-      nodeSelector:
-        {{- toYaml .Values.nodeSelector | nindent 8 }}
-      tolerations:
-        {{- toYaml .Values.tolerations | nindent 8 }}
       containers:
       - name: cert-manager
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
