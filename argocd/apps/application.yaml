@@ -7,9 +7,9 @@ spec:
   project: default
 
   source:
+    chart: rabbitmq
     repoURL: https://charts.bitnami.com/bitnami
     targetRevision: 14.6.5
-    chart: rabbitmq
     helm:
       valuesObject:
         auth:
