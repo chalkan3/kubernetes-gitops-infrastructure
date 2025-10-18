@@ -2,16 +2,29 @@
 
 ## Problema
 
-O RabbitMQ Application está desabilitado porque o cluster não consegue baixar imagens de registries públicos externos:
+O RabbitMQ Application está desabilitado porque **TODO O AMBIENTE** não consegue acessar registries públicos externos:
 
-- ❌ Docker Hub (`docker.io`) - não acessível
-- ❌ Quay.io (`quay.io`) - não acessível
+- ❌ Docker Hub (`docker.io`) - não acessível do cluster
+- ❌ Quay.io (`quay.io`) - não acessível do cluster
+- ❌ Docker Hub - não acessível do host 192.168.1.17 (timeout DNS)
+- ❌ Máquina local - Docker daemon não disponível
+
+**Causa raiz**: Problema de conectividade de rede/DNS no ambiente inteiro, não apenas no cluster
 
 ## Solução 1: Usar Harbor como Mirror
 
 O Harbor está instalado e funcional no cluster. Para usar o RabbitMQ:
 
-### 1. De uma máquina com acesso ao Docker Hub:
+### Pré-requisito: Máquina com Acesso ao Docker Hub
+
+**IMPORTANTE**: Você precisa de uma máquina que tenha:
+- ✅ Docker instalado e rodando
+- ✅ Conectividade à internet para acessar Docker Hub
+- ✅ Conectividade ao Harbor no cluster (10.8.0.13:30002)
+
+⚠️ **Atualmente, nenhuma máquina no ambiente tem acesso ao Docker Hub.**
+
+### 1. De uma máquina COM acesso ao Docker Hub:
 
 ```bash
 # Pull da imagem
