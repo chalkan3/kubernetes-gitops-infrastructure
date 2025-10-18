@@ -20,7 +20,7 @@ Este repositório contém a configuração GitOps para deploy do RabbitMQ usando
 - ArgoCD instalado
 - Plugin Helmfile para ArgoCD
 - Acesso ao Gitea
-- Nós com label `node-role=tools` para deploy do RabbitMQ
+- Nós com label `workload=tools` para deploy do RabbitMQ
 
 ## Deploy Manual com Helmfile
 
@@ -58,7 +58,7 @@ O RabbitMQ está configurado com:
 - Portas:
   - AMQP: 5672
   - Management UI: 15672
-- **NodeSelector**: `node-role=tools` - Deploy apenas em nós com esta label
+- **NodeSelector**: `workload=tools` - Deploy apenas em nós com esta label
 - **Tolerations**: Configurado para tolerar taints `workload=tools:NoSchedule`
 
 ### Preparar Nós para RabbitMQ
@@ -70,7 +70,7 @@ Os nós precisam ter a label apropriada:
 kubectl get nodes
 
 # Adicionar label ao nó
-kubectl label nodes <node-name> node-role=tools
+kubectl label nodes <node-name> workload=tools
 
 # Verificar labels
 kubectl get nodes --show-labels | grep tools

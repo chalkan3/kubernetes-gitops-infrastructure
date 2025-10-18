@@ -7,6 +7,6 @@ releases:
     namespace: rabbitmq
     createNamespace: true
     chart: bitnami/rabbitmq
-    version: 14.8.3
+    version: 15.0.6
     values:
       - values/rabbitmq-values.yaml

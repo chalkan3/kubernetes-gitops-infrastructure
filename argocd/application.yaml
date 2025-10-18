@@ -8,7 +8,7 @@ spec:
 
   source:
     repoURL: https://charts.bitnami.com/bitnami
-    targetRevision: 14.8.3
+    targetRevision: 15.0.6
     chart: rabbitmq
     helm:
       valuesObject:
@@ -17,9 +17,10 @@ spec:
           password: rabbitmq-password
           erlangCookie: secreterlangcookie
         replicaCount: 1
+        image:
+          tag: 3.13.7-debian-12-r4
         persistence:
-          enabled: true
-          size: 8Gi
+          enabled: false
         service:
           type: ClusterIP
           ports:
@@ -37,7 +38,7 @@ spec:
           serviceMonitor:
             enabled: false
         nodeSelector:
-          node-role: tools
+          workload: tools
         tolerations:
           - key: "workload"
             operator: "Equal"

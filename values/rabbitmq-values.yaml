@@ -29,7 +29,7 @@ metrics:
     enabled: false
 
 nodeSelector:
-  node-role: tools
+  workload: tools
 
 tolerations:
   - key: "workload"
