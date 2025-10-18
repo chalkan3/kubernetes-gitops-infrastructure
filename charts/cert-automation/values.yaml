@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: harbor.kube.chalkan3.com.br/library/cert-automation
+  repository: 10.8.0.13:30003/library/cert-automation
   tag: "latest"
   pullPolicy: Always
 
