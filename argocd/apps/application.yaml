@@ -21,6 +21,8 @@ spec:
           registry: 10.8.0.13:30002
           repository: library/rabbitmq
           tag: 3.13-management
+        imagePullSecrets:
+          - harbor-registry
         persistence:
           enabled: false
         service:
