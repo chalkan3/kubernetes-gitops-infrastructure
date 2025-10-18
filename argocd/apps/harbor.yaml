@@ -13,21 +13,16 @@ spec:
     helm:
       valuesObject:
         expose:
-          type: nodePort
+          type: ingress
           tls:
             enabled: true
             certSource: secret
             secret:
               secretName: harbor-tls
-          nodePort:
-            name: harbor
-            ports:
-              http:
-                port: 80
-                nodePort: 30002
-              https:
-                port: 443
-                nodePort: 30003
+          ingress:
+            hosts:
+              core: harbor.kube.chalkan3.com.br
+            className: nginx
 
         externalURL: https://harbor.kube.chalkan3.com.br
 
