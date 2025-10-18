@@ -9,6 +9,8 @@ spec:
       annotations:
         autoscaling.knative.dev/min-scale: "1"
     spec:
+      imagePullSecrets:
+      - name: harbor-registry
       containers:
       - name: cert-manager
         image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
