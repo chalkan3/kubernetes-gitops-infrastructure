@@ -1,0 +1,29 @@
+auth:
+  username: admin
+  password: rabbitmq-password
+  erlangCookie: secreterlangcookie
+
+replicaCount: 1
+
+persistence:
+  enabled: true
+  size: 8Gi
+
+service:
+  type: ClusterIP
+  ports:
+    amqp: 5672
+    manager: 15672
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: false

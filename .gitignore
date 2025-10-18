@@ -1,0 +1,12 @@
+# Helmfile
+.helmfile/
+helmfile.lock
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
+# Secrets (if any)
+secrets/
+*.secret.yaml

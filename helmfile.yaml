@@ -1,0 +1,12 @@
+repositories:
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
+
+releases:
+  - name: rabbitmq
+    namespace: rabbitmq
+    createNamespace: true
+    chart: bitnami/rabbitmq
+    version: 14.8.3
+    values:
+      - values/rabbitmq-values.yaml
