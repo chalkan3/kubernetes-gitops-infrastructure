@@ -18,7 +18,7 @@ spec:
           erlangCookie: secreterlangcookie
         replicaCount: 1
         image:
-          registry: harbor.kube.chalkan3.com.br:30003
+          registry: harbor.kube.chalkan3.com.br
           repository: library/rabbitmq
           tag: 3.13-management
         imagePullSecrets:

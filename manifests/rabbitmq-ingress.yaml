@@ -1,26 +1,24 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: harbor
-  namespace: harbor
+  name: rabbitmq
+  namespace: rabbitmq
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/proxy-body-size: "0"
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
 spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - harbor.kube.chalkan3.com.br
+        - rabbitmq.kube.chalkan3.com.br
       secretName: wildcard-tls
   rules:
-    - host: harbor.kube.chalkan3.com.br
+    - host: rabbitmq.kube.chalkan3.com.br
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: harbor
+                name: rabbitmq
                 port:
-                  number: 443
+                  number: 15672
