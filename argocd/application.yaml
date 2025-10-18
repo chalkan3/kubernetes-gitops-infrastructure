@@ -7,11 +7,42 @@ spec:
   project: default
 
   source:
-    repoURL: https://git.keite-guica.chalkan3.com.br/chalkan3/helmfile-rabbitmq.git
-    targetRevision: HEAD
-    path: .
-    plugin:
-      name: helmfile
+    repoURL: https://charts.bitnami.com/bitnami
+    targetRevision: 14.8.3
+    chart: rabbitmq
+    helm:
+      valuesObject:
+        auth:
+          username: admin
+          password: rabbitmq-password
+          erlangCookie: secreterlangcookie
+        replicaCount: 1
+        persistence:
+          enabled: true
+          size: 8Gi
+        service:
+          type: ClusterIP
+          ports:
+            amqp: 5672
+            manager: 15672
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+        metrics:
+          enabled: true
+          serviceMonitor:
+            enabled: false
+        nodeSelector:
+          node-role: tools
+        tolerations:
+          - key: "workload"
+            operator: "Equal"
+            value: "tools"
+            effect: "NoSchedule"
 
   destination:
     server: https://kubernetes.default.svc
