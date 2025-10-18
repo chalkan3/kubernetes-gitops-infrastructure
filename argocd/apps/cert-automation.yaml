@@ -16,16 +16,6 @@ spec:
           nodeIps: "10.8.0.10,10.8.0.11,10.8.0.12,10.8.0.13,10.8.0.14,10.8.0.15"
           baseDomain: "kube.chalkan3.com.br"
 
-        # SSH key será injetada via secret
-        sshKey: |
-          # Placeholder - será preenchido manualmente no secret
-
-        mkcertCA:
-          cert: |
-            # Placeholder - será preenchido manualmente no secret
-          key: |
-            # Placeholder - será preenchido manualmente no secret
-
         nodeSelector:
           workload: tools
 
