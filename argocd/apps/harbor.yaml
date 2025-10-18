@@ -34,7 +34,24 @@ spec:
         harborAdminPassword: "Harbor12345"
 
         persistence:
-          enabled: false
+          enabled: true
+          persistentVolumeClaim:
+            registry:
+              storageClass: "local-path"
+              size: 20Gi
+            database:
+              storageClass: "local-path"
+              size: 5Gi
+            redis:
+              storageClass: "local-path"
+              size: 2Gi
+            trivy:
+              storageClass: "local-path"
+              size: 5Gi
+            jobservice:
+              jobLog:
+                storageClass: "local-path"
+                size: 2Gi
 
         # NodeSelector para todos os componentes
         portal:
