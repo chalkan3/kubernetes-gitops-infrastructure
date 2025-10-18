@@ -15,7 +15,10 @@ spec:
         expose:
           type: nodePort
           tls:
-            enabled: false
+            enabled: true
+            certSource: secret
+            secret:
+              secretName: harbor-tls
           nodePort:
             name: harbor
             ports:
@@ -26,7 +29,7 @@ spec:
                 port: 443
                 nodePort: 30003
 
-        externalURL: http://10.8.0.13:30002
+        externalURL: https://harbor.kube.chalkan3.com.br
 
         harborAdminPassword: "Harbor12345"
 

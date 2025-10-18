@@ -4,10 +4,15 @@ metadata:
   name: harbor
   namespace: harbor
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
 spec:
   ingressClassName: kourier
+  tls:
+    - hosts:
+        - harbor.kube.chalkan3.com.br
+      secretName: harbor-tls
   rules:
     - host: harbor.kube.chalkan3.com.br
       http:
@@ -18,4 +23,4 @@ spec:
               service:
                 name: harbor
                 port:
-                  number: 80
+                  number: 443
