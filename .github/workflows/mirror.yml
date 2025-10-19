@@ -1,0 +1,28 @@
+name: Mirror to Gitea
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Mirror Bot"
+          git config --global user.email "noreply@github.com"
+
+      - name: Mirror to Gitea
+        env:
+          GITEA_TOKEN: ${{ secrets.GITEA_TOKEN }}
+        run: |
+          git remote add gitea https://$GITEA_TOKEN@git.keite-guica.chalkan3.com.br/chalkan3/helmfile-rabbitmq.git || true
+          git push gitea main --force
