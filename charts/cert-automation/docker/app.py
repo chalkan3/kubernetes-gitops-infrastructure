@@ -91,8 +91,12 @@ def process_ingress_event(event_data):
     Processa evento de Ingress
     """
     try:
+        # Log para debug
+        logger.info(f"Event data type: {type(event_data)}")
+        logger.info(f"Event data keys: {event_data.keys() if hasattr(event_data, 'keys') else 'N/A'}")
+
         # Extrair informações do Ingress
-        ingress_obj = event_data.get('object', {})
+        ingress_obj = event_data.get('object', event_data)
         metadata = ingress_obj.get('metadata', {})
         spec = ingress_obj.get('spec', {})
 
@@ -147,8 +151,8 @@ def handle_event():
         # Parse CloudEvent
         event = from_http(request.headers, request.get_data())
 
-        logger.info(f"Recebido evento: {event.get_type()}")
-        logger.info(f"Subject: {event.get_subject()}")
+        logger.info(f"Recebido evento: {event['type']}")
+        logger.info(f"Subject: {event.get('subject', 'N/A')}")
 
         # Processar evento
         event_data = event.data
