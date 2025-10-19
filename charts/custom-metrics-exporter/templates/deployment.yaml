@@ -1,0 +1,49 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: custom-metrics-exporter
+  namespace: custom-metrics-exporter
+  labels:
+    app: custom-metrics-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: custom-metrics-exporter
+  template:
+    metadata:
+      labels:
+        app: custom-metrics-exporter
+    spec:
+      serviceAccountName: custom-metrics-exporter
+      containers:
+      - name: exporter
+        image: harbor.kube.chalkan3.com.br/library/custom-metrics-exporter:latest
+        imagePullPolicy: Always
+        ports:
+        - name: metrics
+          containerPort: 8080
+          protocol: TCP
+        env:
+        - name: CLUSTER_NAME
+          value: "kube.chalkan3.com.br"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 200m
+            memory: 256Mi
+          requests:
+            cpu: 50m
+            memory: 128Mi
