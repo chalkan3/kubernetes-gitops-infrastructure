@@ -1,0 +1,50 @@
+---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: pvc-monitor
+  namespace: pvc-monitor
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/min-scale: "1"
+    spec:
+      serviceAccountName: pvc-monitor
+      containers:
+      - name: monitor
+        image: harbor.kube.chalkan3.com.br/library/pvc-monitor:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        env:
+        - name: NTFY_URL
+          value: "https://ntfy.sh"
+        - name: NTFY_TOPIC
+          value: "k8s-pvc-monitor"
+        - name: CLUSTER_NAME
+          value: "kube.chalkan3.com.br"
+        - name: WARNING_THRESHOLD
+          value: "80"
+        - name: CRITICAL_THRESHOLD
+          value: "90"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          limits:
+            cpu: 300m
+            memory: 512Mi
+          requests:
+            cpu: 150m
+            memory: 256Mi

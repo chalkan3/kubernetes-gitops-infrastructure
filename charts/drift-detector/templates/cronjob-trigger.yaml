@@ -1,0 +1,23 @@
+---
+# CronJob para executar verificação de drift a cada 15 minutos
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: drift-detector-trigger
+  namespace: drift-detector
+spec:
+  schedule: "*/15 * * * *"  # A cada 15 minutos
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: drift-detector
+          restartPolicy: OnFailure
+          containers:
+          - name: trigger
+            image: curlimages/curl:latest
+            command:
+            - sh
+            - -c
+            - |
+              curl -X POST http://drift-detector.drift-detector.svc.cluster.local/check

@@ -1,0 +1,23 @@
+---
+# CronJob para executar verificação de PVCs a cada 30 minutos
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pvc-monitor-trigger
+  namespace: pvc-monitor
+spec:
+  schedule: "*/30 * * * *"  # A cada 30 minutos
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: pvc-monitor
+          restartPolicy: OnFailure
+          containers:
+          - name: trigger
+            image: curlimages/curl:latest
+            command:
+            - sh
+            - -c
+            - |
+              curl -X POST http://pvc-monitor.pvc-monitor.svc.cluster.local/check

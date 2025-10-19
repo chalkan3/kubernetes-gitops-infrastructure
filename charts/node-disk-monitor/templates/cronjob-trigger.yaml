@@ -1,0 +1,23 @@
+---
+# CronJob para executar verificação de disk space a cada hora
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: node-disk-monitor-trigger
+  namespace: node-disk-monitor
+spec:
+  schedule: "0 * * * *"  # A cada hora
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: node-disk-monitor
+          restartPolicy: OnFailure
+          containers:
+          - name: trigger
+            image: curlimages/curl:latest
+            command:
+            - sh
+            - -c
+            - |
+              curl -X POST http://node-disk-monitor.node-disk-monitor.svc.cluster.local/check

@@ -1,0 +1,28 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: node-disk-monitor
+  namespace: node-disk-monitor
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: node-disk-monitor
+rules:
+- apiGroups: [""]
+  resources: ["nodes", "nodes/proxy", "nodes/stats"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: node-disk-monitor
+subjects:
+- kind: ServiceAccount
+  name: node-disk-monitor
+  namespace: node-disk-monitor
+roleRef:
+  kind: ClusterRole
+  name: node-disk-monitor
+  apiGroup: rbac.authorization.k8s.io
