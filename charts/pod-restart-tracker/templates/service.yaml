@@ -1,0 +1,65 @@
+---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: pod-restart-tracker
+  namespace: pod-restart-tracker
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/min-scale: "1"
+    spec:
+      serviceAccountName: pod-restart-tracker
+      containers:
+      - name: tracker
+        image: harbor.kube.chalkan3.com.br/library/pod-restart-tracker:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        env:
+        - name: NTFY_URL
+          valueFrom:
+            configMapKeyRef:
+              name: tracker-config
+              key: ntfy-url
+        - name: NTFY_TOPIC
+          valueFrom:
+            configMapKeyRef:
+              name: tracker-config
+              key: ntfy-topic
+        - name: CLUSTER_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: tracker-config
+              key: cluster-name
+        - name: RESTART_THRESHOLD
+          valueFrom:
+            configMapKeyRef:
+              name: tracker-config
+              key: restart-threshold
+        - name: TIME_WINDOW_MINUTES
+          valueFrom:
+            configMapKeyRef:
+              name: tracker-config
+              key: time-window-minutes
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          limits:
+            cpu: 200m
+            memory: 256Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi

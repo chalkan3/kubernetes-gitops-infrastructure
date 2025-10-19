@@ -1,0 +1,48 @@
+---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: health-check
+  namespace: health-check
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/min-scale: "1"
+    spec:
+      serviceAccountName: health-check
+      containers:
+      - name: health
+        image: harbor.kube.chalkan3.com.br/library/health-check:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        env:
+        - name: NTFY_URL
+          value: "https://ntfy.sh"
+        - name: NTFY_TOPIC
+          value: "k8s-health-check"
+        - name: CLUSTER_NAME
+          value: "kube.chalkan3.com.br"
+        - name: CHECK_INTERVAL
+          value: "300"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          limits:
+            cpu: 200m
+            memory: 256Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi

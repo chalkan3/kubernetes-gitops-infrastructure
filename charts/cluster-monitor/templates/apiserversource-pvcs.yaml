@@ -1,0 +1,19 @@
+{{- if .Values.monitoring.pvcs }}
+apiVersion: sources.knative.dev/v1
+kind: ApiServerSource
+metadata:
+  name: pvc-source
+  namespace: {{ .Release.Namespace }}
+spec:
+  serviceAccountName: cluster-monitor
+  mode: Resource
+  resources:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+  sink:
+    ref:
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      name: cluster-monitor
+    uri: /pvcs
+{{- end }}

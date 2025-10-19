@@ -1,0 +1,46 @@
+---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: scaler-advisor
+  namespace: scaler-advisor
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/min-scale: "1"
+    spec:
+      serviceAccountName: scaler-advisor
+      containers:
+      - name: advisor
+        image: harbor.kube.chalkan3.com.br/library/scaler-advisor:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        env:
+        - name: NTFY_URL
+          value: "https://ntfy.sh"
+        - name: NTFY_TOPIC
+          value: "k8s-scaler-advisor"
+        - name: CLUSTER_NAME
+          value: "kube.chalkan3.com.br"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          limits:
+            cpu: 300m
+            memory: 512Mi
+          requests:
+            cpu: 150m
+            memory: 256Mi

@@ -1,0 +1,19 @@
+{{- if .Values.monitoring.nodes }}
+apiVersion: sources.knative.dev/v1
+kind: ApiServerSource
+metadata:
+  name: node-source
+  namespace: {{ .Release.Namespace }}
+spec:
+  serviceAccountName: cluster-monitor
+  mode: Resource
+  resources:
+  - apiVersion: v1
+    kind: Node
+  sink:
+    ref:
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      name: cluster-monitor
+    uri: /nodes
+{{- end }}

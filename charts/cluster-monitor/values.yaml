@@ -1,0 +1,41 @@
+replicaCount: 1
+
+image:
+  repository: harbor.kube.chalkan3.com.br/library/cluster-monitor
+  tag: "latest"
+  pullPolicy: Always
+
+service:
+  minScale: 1
+
+# Configuração do ntfy
+ntfy:
+  url: "https://ntfy.sh"
+  topic: "k8s-cluster-monitor"
+
+# Nome do cluster (aparece nas notificações)
+clusterName: "kube.chalkan3.com.br"
+
+# Recursos monitorados (true para habilitar)
+monitoring:
+  pods: true
+  nodes: true
+  deployments: true
+  pvcs: true
+
+nodeSelector:
+  workload: tools
+
+tolerations:
+  - key: "workload"
+    operator: "Equal"
+    value: "tools"
+    effect: "NoSchedule"
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi

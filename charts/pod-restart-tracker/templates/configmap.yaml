@@ -1,0 +1,12 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tracker-config
+  namespace: pod-restart-tracker
+data:
+  cluster-name: "kube.chalkan3.com.br"
+  ntfy-topic: "k8s-restart-tracker"
+  ntfy-url: "https://ntfy.sh"
+  restart-threshold: "5"
+  time-window-minutes: "60"

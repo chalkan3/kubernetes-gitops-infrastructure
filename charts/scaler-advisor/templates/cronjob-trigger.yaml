@@ -1,0 +1,23 @@
+---
+# CronJob para executar análise de scaling a cada hora
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: scaler-advisor-trigger
+  namespace: scaler-advisor
+spec:
+  schedule: "0 * * * *"  # A cada hora
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: scaler-advisor
+          restartPolicy: OnFailure
+          containers:
+          - name: trigger
+            image: curlimages/curl:latest
+            command:
+            - sh
+            - -c
+            - |
+              curl -X POST http://scaler-advisor.scaler-advisor.svc.cluster.local/analyze

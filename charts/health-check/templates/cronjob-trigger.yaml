@@ -1,0 +1,23 @@
+---
+# CronJob para executar health check a cada 5 minutos
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: health-check-trigger
+  namespace: health-check
+spec:
+  schedule: "*/5 * * * *"  # A cada 5 minutos
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: health-check
+          restartPolicy: OnFailure
+          containers:
+          - name: trigger
+            image: curlimages/curl:latest
+            command:
+            - sh
+            - -c
+            - |
+              curl -X POST http://health-check.health-check.svc.cluster.local/check

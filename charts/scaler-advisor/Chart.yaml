@@ -1,0 +1,6 @@
+apiVersion: v2
+name: scaler-advisor
+description: Auto-scaling advisor for Kubernetes workloads with Knative and ntfy notifications
+type: application
+version: 1.0.0
+appVersion: "1.0.0"

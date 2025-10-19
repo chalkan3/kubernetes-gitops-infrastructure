@@ -1,0 +1,17 @@
+---
+apiVersion: sources.knative.dev/v1
+kind: ApiServerSource
+metadata:
+  name: pod-source
+  namespace: pod-restart-tracker
+spec:
+  serviceAccountName: pod-restart-tracker
+  mode: Resource
+  resources:
+  - apiVersion: v1
+    kind: Pod
+  sink:
+    ref:
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      name: pod-restart-tracker
