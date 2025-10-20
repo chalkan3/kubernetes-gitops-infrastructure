@@ -15,6 +15,13 @@ prometheusOperator:
       cpu: 50m
       memory: 128Mi
 
+  # Tolerations to allow scheduling on misc nodes
+  tolerations:
+    - key: "workload"
+      operator: "Equal"
+      value: "misc"
+      effect: "NoSchedule"
+
 # Prometheus instance settings
 prometheus:
   enabled: true
@@ -29,6 +36,13 @@ prometheus:
       limits:
         cpu: 500m
         memory: 2Gi
+
+    # Tolerations to allow scheduling on misc nodes
+    tolerations:
+      - key: "workload"
+        operator: "Equal"
+        value: "misc"
+        effect: "NoSchedule"
     storageSpec:
       volumeClaimTemplate:
         spec:
@@ -74,6 +88,13 @@ grafana:
     requests:
       cpu: 50m
       memory: 128Mi
+
+  # Tolerations to allow scheduling on misc nodes
+  tolerations:
+    - key: "workload"
+      operator: "Equal"
+      value: "misc"
+      effect: "NoSchedule"
 
   # Grafana ingress
   ingress:
@@ -472,6 +493,13 @@ alertmanager:
       limits:
         cpu: 100m
         memory: 256Mi
+
+    # Tolerations to allow scheduling on misc nodes
+    tolerations:
+      - key: "workload"
+        operator: "Equal"
+        value: "misc"
+        effect: "NoSchedule"
 
 # Node exporter - metrics from nodes
 nodeExporter:
