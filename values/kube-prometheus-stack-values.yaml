@@ -1,0 +1,479 @@
+# kube-prometheus-stack configuration
+# Includes Prometheus Operator, Prometheus, Grafana, and Alertmanager
+
+# Global settings
+fullnameOverride: "kube-prometheus-stack"
+
+# Prometheus Operator settings
+prometheusOperator:
+  enabled: true
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+# Prometheus instance settings
+prometheus:
+  enabled: true
+  prometheusSpec:
+    retention: 15d
+    retentionSize: "10GB"
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 2Gi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 15Gi
+    # ServiceMonitor selector - scrape all ServiceMonitors
+    serviceMonitorSelector: {}
+    serviceMonitorNamespaceSelector: {}
+    # PodMonitor selector
+    podMonitorSelector: {}
+    podMonitorNamespaceSelector: {}
+    # Additional scrape configs for custom metrics exporter
+    additionalScrapeConfigs:
+      - job_name: 'custom-metrics-exporter'
+        kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names:
+                - custom-metrics-exporter
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name]
+            action: keep
+            regex: custom-metrics-exporter
+          - source_labels: [__meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: metrics
+
+# Grafana settings
+grafana:
+  enabled: true
+  adminPassword: "admin"  # Change in production!
+  persistence:
+    enabled: true
+    size: 5Gi
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+  # Grafana ingress
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - grafana.kube.chalkan3.com.br
+    tls:
+      - secretName: grafana-tls
+        hosts:
+          - grafana.kube.chalkan3.com.br
+
+  # Data sources
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          url: http://kube-prometheus-stack-prometheus.monitoring:9090
+          access: proxy
+          isDefault: true
+          jsonData:
+            timeInterval: 30s
+
+  # Dashboard providers
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: 'default'
+          orgId: 1
+          folder: ''
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/default
+        - name: 'custom-monitoring'
+          orgId: 1
+          folder: 'Custom Monitoring'
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/custom-monitoring
+
+  # Custom dashboards
+  dashboards:
+    custom-monitoring:
+      cluster-overview:
+        json: |
+          {
+            "annotations": {
+              "list": [
+                {
+                  "builtIn": 1,
+                  "datasource": "-- Grafana --",
+                  "enable": true,
+                  "hide": true,
+                  "iconColor": "rgba(0, 211, 255, 1)",
+                  "name": "Annotations & Alerts",
+                  "type": "dashboard"
+                }
+              ]
+            },
+            "editable": true,
+            "gnetId": null,
+            "graphTooltip": 0,
+            "id": null,
+            "links": [],
+            "panels": [
+              {
+                "datasource": "Prometheus",
+                "fieldConfig": {
+                  "defaults": {
+                    "color": {
+                      "mode": "thresholds"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green",
+                          "value": null
+                        }
+                      ]
+                    }
+                  }
+                },
+                "gridPos": {
+                  "h": 4,
+                  "w": 4,
+                  "x": 0,
+                  "y": 0
+                },
+                "id": 1,
+                "options": {
+                  "colorMode": "value",
+                  "graphMode": "none",
+                  "justifyMode": "auto",
+                  "orientation": "auto",
+                  "reduceOptions": {
+                    "calcs": ["lastNotNull"],
+                    "fields": "",
+                    "values": false
+                  },
+                  "textMode": "auto"
+                },
+                "pluginVersion": "8.0.0",
+                "targets": [
+                  {
+                    "expr": "k8s_cluster_nodes_total",
+                    "refId": "A"
+                  }
+                ],
+                "title": "Total Nodes",
+                "type": "stat"
+              },
+              {
+                "datasource": "Prometheus",
+                "fieldConfig": {
+                  "defaults": {
+                    "color": {
+                      "mode": "thresholds"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "red",
+                          "value": null
+                        },
+                        {
+                          "color": "green",
+                          "value": 1
+                        }
+                      ]
+                    }
+                  }
+                },
+                "gridPos": {
+                  "h": 4,
+                  "w": 4,
+                  "x": 4,
+                  "y": 0
+                },
+                "id": 2,
+                "options": {
+                  "colorMode": "value",
+                  "graphMode": "none",
+                  "justifyMode": "auto",
+                  "orientation": "auto",
+                  "reduceOptions": {
+                    "calcs": ["lastNotNull"],
+                    "fields": "",
+                    "values": false
+                  },
+                  "textMode": "auto"
+                },
+                "pluginVersion": "8.0.0",
+                "targets": [
+                  {
+                    "expr": "k8s_cluster_nodes_ready",
+                    "refId": "A"
+                  }
+                ],
+                "title": "Ready Nodes",
+                "type": "stat"
+              },
+              {
+                "datasource": "Prometheus",
+                "fieldConfig": {
+                  "defaults": {
+                    "color": {
+                      "mode": "thresholds"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "blue",
+                          "value": null
+                        }
+                      ]
+                    }
+                  }
+                },
+                "gridPos": {
+                  "h": 4,
+                  "w": 4,
+                  "x": 8,
+                  "y": 0
+                },
+                "id": 3,
+                "options": {
+                  "colorMode": "value",
+                  "graphMode": "none",
+                  "justifyMode": "auto",
+                  "orientation": "auto",
+                  "reduceOptions": {
+                    "calcs": ["lastNotNull"],
+                    "fields": "",
+                    "values": false
+                  },
+                  "textMode": "auto"
+                },
+                "pluginVersion": "8.0.0",
+                "targets": [
+                  {
+                    "expr": "k8s_cluster_namespaces_total",
+                    "refId": "A"
+                  }
+                ],
+                "title": "Total Namespaces",
+                "type": "stat"
+              },
+              {
+                "datasource": "Prometheus",
+                "fieldConfig": {
+                  "defaults": {
+                    "color": {
+                      "mode": "palette-classic"
+                    },
+                    "custom": {
+                      "axisLabel": "",
+                      "axisPlacement": "auto",
+                      "barAlignment": 0,
+                      "drawStyle": "line",
+                      "fillOpacity": 10,
+                      "gradientMode": "none",
+                      "hideFrom": {
+                        "tooltip": false,
+                        "viz": false,
+                        "legend": false
+                      },
+                      "lineInterpolation": "linear",
+                      "lineWidth": 1,
+                      "pointSize": 5,
+                      "scaleDistribution": {
+                        "type": "linear"
+                      },
+                      "showPoints": "never",
+                      "spanNulls": true
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green",
+                          "value": null
+                        }
+                      ]
+                    },
+                    "unit": "short"
+                  }
+                },
+                "gridPos": {
+                  "h": 8,
+                  "w": 12,
+                  "x": 0,
+                  "y": 4
+                },
+                "id": 4,
+                "options": {
+                  "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom"
+                  },
+                  "tooltip": {
+                    "mode": "single"
+                  }
+                },
+                "pluginVersion": "8.0.0",
+                "targets": [
+                  {
+                    "expr": "sum(k8s_cluster_deployments_total) by (namespace)",
+                    "legendFormat": "{{namespace}}",
+                    "refId": "A"
+                  }
+                ],
+                "title": "Deployments by Namespace",
+                "type": "timeseries"
+              },
+              {
+                "datasource": "Prometheus",
+                "fieldConfig": {
+                  "defaults": {
+                    "color": {
+                      "mode": "palette-classic"
+                    },
+                    "custom": {
+                      "axisLabel": "",
+                      "axisPlacement": "auto",
+                      "barAlignment": 0,
+                      "drawStyle": "line",
+                      "fillOpacity": 10,
+                      "gradientMode": "none",
+                      "hideFrom": {
+                        "tooltip": false,
+                        "viz": false,
+                        "legend": false
+                      },
+                      "lineInterpolation": "linear",
+                      "lineWidth": 1,
+                      "pointSize": 5,
+                      "scaleDistribution": {
+                        "type": "linear"
+                      },
+                      "showPoints": "never",
+                      "spanNulls": true
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green",
+                          "value": null
+                        }
+                      ]
+                    },
+                    "unit": "short"
+                  }
+                },
+                "gridPos": {
+                  "h": 8,
+                  "w": 12,
+                  "x": 12,
+                  "y": 4
+                },
+                "id": 5,
+                "options": {
+                  "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "bottom"
+                  },
+                  "tooltip": {
+                    "mode": "single"
+                  }
+                },
+                "pluginVersion": "8.0.0",
+                "targets": [
+                  {
+                    "expr": "sum(k8s_cluster_pods_total) by (phase)",
+                    "legendFormat": "{{phase}}",
+                    "refId": "A"
+                  }
+                ],
+                "title": "Pods by Phase",
+                "type": "timeseries"
+              }
+            ],
+            "refresh": "30s",
+            "schemaVersion": 27,
+            "style": "dark",
+            "tags": ["kubernetes", "cluster"],
+            "templating": {
+              "list": []
+            },
+            "time": {
+              "from": "now-6h",
+              "to": "now"
+            },
+            "timepicker": {},
+            "timezone": "",
+            "title": "Kubernetes Cluster Overview",
+            "uid": "k8s-cluster-overview",
+            "version": 1
+          }
+
+# Alertmanager settings
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    replicas: 1
+    retention: 120h
+    storage:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 5Gi
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+
+# Node exporter - metrics from nodes
+nodeExporter:
+  enabled: true
+
+# Kube state metrics - metrics from K8s API
+kubeStateMetrics:
+  enabled: true

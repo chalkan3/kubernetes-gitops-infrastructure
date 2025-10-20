@@ -1,0 +1,18 @@
+---
+# ServiceMonitor for Prometheus Operator
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: custom-metrics-exporter
+  namespace: custom-metrics-exporter
+  labels:
+    app: custom-metrics-exporter
+    prometheus: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app: custom-metrics-exporter
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
