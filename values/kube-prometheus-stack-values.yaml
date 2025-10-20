@@ -64,9 +64,9 @@ grafana:
   enabled: true
   adminPassword: "admin"  # Change in production!
   persistence:
-    enabled: true
-    size: 5Gi
-    storageClassName: local-path
+    enabled: false
+    # size: 5Gi
+    # storageClassName: local-path
   resources:
     limits:
       cpu: 200m
