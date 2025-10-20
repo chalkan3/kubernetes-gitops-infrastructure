@@ -32,6 +32,7 @@ prometheus:
     storageSpec:
       volumeClaimTemplate:
         spec:
+          storageClassName: local-path
           accessModes: ["ReadWriteOnce"]
           resources:
             requests:
@@ -65,6 +66,7 @@ grafana:
   persistence:
     enabled: true
     size: 5Gi
+    storageClassName: local-path
   resources:
     limits:
       cpu: 200m
@@ -458,6 +460,7 @@ alertmanager:
     storage:
       volumeClaimTemplate:
         spec:
+          storageClassName: local-path
           accessModes: ["ReadWriteOnce"]
           resources:
             requests:
